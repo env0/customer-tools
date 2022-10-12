@@ -7,13 +7,13 @@ This script can be used to migrate a single workspace in Terraform Cloud to env0
 - Clone this repository.
 - Create a file named "inputs.txt" and populate it with the below, changing INSERT to the relevant data.
 
-tfcOrgName="INSERT"
-tfcWorkspaceID="INSERT"
-tfcBearerToken="INSERT"
+tfcOrgName="INSERT" \n
+tfcWorkspaceID="INSERT" \n
+tfcBearerToken="INSERT" \n
 
-env0OrgID="INSERT"
-env0ProjectID="INSERT"
-env0BearerToken="INSERT"
+env0OrgID="INSERT" \n
+env0ProjectID="INSERT" \n
+env0BearerToken="INSERT" \n
 
 ## Migrate from TFC to env0
 
