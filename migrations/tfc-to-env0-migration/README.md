@@ -1,4 +1,4 @@
-# customer-tools
+# TFC to env0 Migration
 
 This script can be used to migrate a single workspace in Terraform Cloud to env0.
 
@@ -26,6 +26,6 @@ Execute the script using the below command.
 
 ./tfc2env0.sh
 
-## Remaining Tasks
+# Use cases
 
-- Include code to migrate state.
+Currently this will migrate a single workspace from TFC to env0 when the state is stored remotely (i.e. AWS S3 bucket).
