@@ -16,7 +16,7 @@ terraform {
 }
 
 provider "env0" {
-  # env0 Provider expects to find the following environment variables defined.
+  # env0 Provider expects to find the environment variables defined.
   # to create an API key see:  https://docs.env0.com/docs/api-keys
   # ENV0_API_KEY    
   # ENV0_API_SECRET
@@ -81,9 +81,9 @@ resource "aws_iam_role" "env0_deployer_role" {
 }
 
 resource "random_string" "externalid" {
-  length  = 32
-  upper   = true
-  special = false
+  length           = 32
+  special          = true
+  override_special = "=,.@:/-" # allowable characters defined here: https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html
 }
 
 resource "env0_aws_credentials" "credentials" {
