@@ -7,7 +7,13 @@ Pull Requests are welcome!
 
 The folder structure is still relatively fluid.  For now, we'll use the following structure:
 
+```
 ├── iam
 │   └── aws                   # aws assume roles 
-└── migrations
-    └── tfc-to-env0-migration # script to help migrate from TFC to env0
+├── migrations
+│   └── tfc-to-env0-migration # script to help migrate from TFC to env0
+├── modules
+│   └── env0
+└── self-hosted-agent
+
+```
