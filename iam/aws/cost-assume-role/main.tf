@@ -47,7 +47,7 @@ resource "aws_iam_role" "env0_cost_role" {
   max_session_duration = 18000
 
   inline_policy {
-    name   = "env0-cost-policy"
+    name = "env0-cost-policy"
     policy = jsonencode({
       "Version" : "2012-10-17",
       "Statement" : [
@@ -58,9 +58,8 @@ resource "aws_iam_role" "env0_cost_role" {
         }
       ]
     })
-
   }
-  
+
   # see: https://docs.env0.com/docs/aws-costs#add-credentials-to-your-organization
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17",
