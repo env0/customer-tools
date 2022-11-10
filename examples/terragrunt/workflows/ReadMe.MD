@@ -8,3 +8,22 @@ The way this is accomplished is by using an env0.workflow.yml file which can be 
 
 ## How to use this code.
 
+- Create a Terragrunt template call "customer-example-vpc".
+- Set the VCS values to the following:
+- - Repository URL = https://github.com/env0/customer-tools
+- - Branch = main
+- - Folder = examples/terragrunt/workflows/vpc/
+
+- Create a Terragunt template call "customer-example-subnets".
+- Set the VCS values to the following:
+- - Repository URL = https://github.com/env0/customer-tools
+- - Branch = main
+- - Folder = examples/terragrunt/workflows/subnets/
+
+- Create a Workflow template call "customer-example-workflow (vpc & subnet)".
+- Set the VCS values to the following:
+- - Repository URL = https://github.com/env0/customer-tools
+- - Branch = main
+- - Folder = examples/terragrunt/workflows/
+
+Run the "customer-example-workflow (vpc & subnet)" template.
