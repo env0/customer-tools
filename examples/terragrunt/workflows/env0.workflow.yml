@@ -1,0 +1,9 @@
+environments:
+  vpc:
+    name: 'customer-example-vpc'
+    templateName: 'customer-example-vpc'
+  subnets:
+    name: customer-example-subnets
+    templateName: 'customer-example-subnets'
+    needs:
+      - vpc
