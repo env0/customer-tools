@@ -1,4 +1,4 @@
-# TFC to env0 Migration
+# TFC to env0 Migration - S3 Backed State
 
 This script can be used to migrate a single workspace in Terraform Cloud to env0.
 
