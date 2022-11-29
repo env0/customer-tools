@@ -1,0 +1,4 @@
+# This is a sensitive file, don't check into git. You can see more info about this in the docs: https://docs.env0.com/docs/self-hosted-kubernetes-agent#customoptional-configuration
+storageClassName: local-path
+customerAwsAccessKeyIdEncoded: <base64_encoded>
+customerAwsSecretAccessKeyEncoded: <base64_encoded>

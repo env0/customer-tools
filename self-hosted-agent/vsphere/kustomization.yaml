@@ -1,0 +1,15 @@
+resources:
+  - env0.yaml
+patches:
+  - patch: |-
+      - op: replace
+        path: "/spec/accessModes"
+        value: ["ReadWriteOnce"]
+    target:
+      kind: PersistentVolumeClaim
+  - patch: |-
+      - op: replace
+        path: "/spec/resources/requests/storage"
+        value: "10Gi"
+    target:
+      kind: PersistentVolumeClaim
