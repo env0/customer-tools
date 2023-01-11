@@ -1,0 +1,8 @@
+version: 2
+
+deploy:
+  steps:
+    terraformPlan:
+      before:
+        - name: Decode OIDC Token 
+          run: ./decode-oidc-token.sh
