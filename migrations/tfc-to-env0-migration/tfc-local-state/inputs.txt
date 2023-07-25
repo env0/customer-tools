@@ -1,0 +1,11 @@
+#/bin/bash
+
+tfcOrgName=""
+tfcWorkspaceName=""
+tfcWorkspaceID=""
+tfcBearerToken=""
+
+env0OrgID=""
+env0ProjectID=""
+env0WorkspaceName=""
+env0BearerToken=""

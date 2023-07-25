@@ -1,0 +1,21 @@
+version: 1
+
+deploy:
+  steps:
+    setupVariables:
+      after: &login-k8s
+        - aws eks --region=$AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
+        - if [[ ! -e helm-v3.10.2-linux-amd64.tar.gz ]]; then wget https://get.helm.sh/helm-v3.10.2-linux-amd64.tar.gz; fi
+        - tar -zxvf helm-v3.10.2-linux-amd64.tar.gz
+        - ./linux-amd64/helm repo add grafana https://grafana.github.io/helm-charts
+        - ./linux-amd64/helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        - ./linux-amd64/helm repo update
+        # - kubectl create namespace monitoring
+        # - kubectl create sa release-name-grafana-test -n monitoring
+        - ./linux-amd64/helm template prometheus-community/prometheus -n monitoring > prom.yaml
+        - ./linux-amd64/helm template grafana/grafana -n monitoring > graf.yaml
+
+destroy:
+  steps:
+    setupVariables:
+      after: *login-k8s

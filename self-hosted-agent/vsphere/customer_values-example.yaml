@@ -1,0 +1,26 @@
+# You will need to download this file from your env0 dashboard under oranization settings > agents. I'm just showing you what it will look like...This contains sensitive info so don't check to git.
+"agentImagePullSecret": "xx"
+"agentKey": "tekanaid"
+"agentProxy":
+  "install": true
+"apiGatewayUrl": "xx"
+"awsAccessKeyIdEncoded": "xx"
+"awsSecretAccessKeyEncoded": "xx"
+"awsSecretsRegion": "us-east-1"
+"deploymentResultSqsUrl": "xx"
+"deploymentTriggerApi": "xx"
+"deploymentTriggerSqsUrl": "xx"
+"env0ApiGwKeyEncoded": "xx"
+"eventsTopicArn": "xx"
+"httpProxyRequestSqsUrl": "xx"
+"httpProxyResponseBucketName": "xx"
+"isSelfHosted": "true"
+"limits":
+  "cpu": "460m"
+  "memory": "1500Mi"
+"outputLogsLogGroupName": "prerequisites-prod-k8s-shag-logs"
+"prerequisitesStackName": "prerequisites-prod"
+"region": "us-east-1"
+"sharedStackPrefix": "shared-prod-"
+"stage": "prod"
+"stateMountPath": "/mnt/private/env0"
