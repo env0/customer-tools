@@ -19,6 +19,10 @@
 # PHASE II - Expand to multiple buckets/workspaces
 # PHASE III - Profit! ($$$)
 
+### VARIABLES
+BACKEND_FLAVOR=${BACKEND_FLAVOR:-tfc}       # Which backend type to count (tfc or s3)
+WORKSPACE_PREFIX=$1                           # Prefix or actual workspace name
+
 ### Error Handling
 set -o pipefail  # trace ERR through pipes
 set -o errtrace  # trace ERR through 'time command' and other functions
@@ -65,18 +69,18 @@ function error() {
 ### HELPER FUNCTIONS
 
 function countS3Bucket() {
-  info "Looking at changes for \"$BACKEND_NAME\""
+  info "Looking at changes for \"$1\""
 
   # S3 Version
-  VERSION_STATUS=$(aws s3api get-bucket-versioning --bucket $BACKEND_NAME | jq -r '.Status')
+  VERSION_STATUS=$(aws s3api get-bucket-versioning --bucket $1 | jq -r '.Status')
 
   info "Versioning is: $VERSION_STATUS"
 
   if [[ $VERSION_STATUS != "Enabled" ]]; then
-    warn "Skipping Bucket: \"$BACKEND_NAME\" does not have versioning enabled, this bucket cannot be counted."
+    warn "Skipping Bucket: \"$1\" does not have versioning enabled, this bucket cannot be counted."
   fi
 
-  JQ_OUT=($(aws s3api list-object-versions --bucket env0-acme-tfstate --no-paginate | jq -r '.Versions | length, sort_by(.LastModified)[0].LastModified'))
+  JQ_OUT=($(aws s3api list-object-versions --bucket $1 --no-paginate | jq -r '.Versions | length, sort_by(.LastModified)[0].LastModified'))
 
   NUM_CHANGES=${JQ_OUT[0]}
   FIRST_CHANGE=${JQ_OUT[1]}
@@ -125,20 +129,17 @@ function calculateChangeVelocity(){
   fi
 }
 
-
-### VARIABLES
-BACKEND_FLAVOR=${BACKEND_FLAVOR:-tfc}       # Which backend type to count (tfc or s3)
-BACKEND_PREFIX=$1                           # The backend prefix to query.
+                        # The backend prefix to query.
 
 info "Counting State Changes..."
 
-if [[ -z $BACKEND_PREFIX ]]; then
+if [[ -z $WORKSPACE_PREFIX ]]; then
   warn "Need bucket prefix or name"
   exit 1
 fi
 
 ## TODO: List all bucket and count each bucket matching PREFIX
-BACKEND_NAME=$BACKEND_PREFIX
+WORKSPACE=$WORKSPACE_PREFIX
 
 case $BACKEND_FLAVOR in 
 "tfc")
@@ -150,10 +151,10 @@ case $BACKEND_FLAVOR in
     warn "Need to set your TFC/TFE Organization ID using: `TFC_ORGANIZATION`"
     exit 1
   fi  
-  countTFC $BACKEND_NAME
+  countTFC $WORKSPACE
   ;;
 "s3")
-  countS3Bucket $BACKEND_NAME
+  countS3Bucket $WORKSPACE
   ;;
 *)
   error "Invalid BACKEND_FLAVOR: $BACKEND_FLAVOR. Valid values: tfc, or s3" ;;
