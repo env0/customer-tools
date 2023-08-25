@@ -6,13 +6,26 @@
 # count-changes.sh counts the amount of version change in an s3 bucket
 # 
 # Pre-Requisites: 
-# - aws v2 CLI access
+# - aws v2 CLI access - if s3 buckets, ensure you're already authenticated to your cloud
 # - s3:ListBucketVersions
+# - TF_TOKEN_api_terraform_io - if tfc workspaces, set this env var prior to running the script
+# - TFC_ORGANIZATION
 # - macos (date function specific for macos)
 #--------------------------------------------------------------------------------------------------------------------------
 
-### Logging
+# PHASE I - MVP / PoC
+# * get version history for an s3 bucket
+# * get version history for a TFC workspace
+# PHASE II - Expand to multiple buckets/workspaces
+# PHASE III - Profit! ($$$)
 
+### Error Handling
+set -o pipefail  # trace ERR through pipes
+set -o errtrace  # trace ERR through 'time command' and other functions
+
+trap 'error ${LINENO} ${?}' ERR
+
+### Logging
 LOGFILE="count.log"
 
 # ref: https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html
@@ -49,52 +62,104 @@ function error() {
   exit 1
 }
 
-### Error Handling
+### HELPER FUNCTIONS
 
-set -o pipefail  # trace ERR through pipes
-set -o errtrace  # trace ERR through 'time command' and other functions
+function countS3Bucket() {
+  info "Looking at changes for \"$BACKEND_NAME\""
 
-trap 'error ${LINENO} ${?}' ERR
+  # S3 Version
+  VERSION_STATUS=$(aws s3api get-bucket-versioning --bucket $BACKEND_NAME | jq -r '.Status')
 
-# --- 
+  info "Versioning is: $VERSION_STATUS"
+
+  if [[ $VERSION_STATUS != "Enabled" ]]; then
+    warn "Skipping Bucket: \"$BACKEND_NAME\" does not have versioning enabled, this bucket cannot be counted."
+  fi
+
+  JQ_OUT=($(aws s3api list-object-versions --bucket env0-acme-tfstate --no-paginate | jq -r '.Versions | length, sort_by(.LastModified)[0].LastModified'))
+
+  NUM_CHANGES=${JQ_OUT[0]}
+  FIRST_CHANGE=${JQ_OUT[1]}
+
+  info "Number of changes since $FIRST_CHANGE: $NUM_CHANGES"
+
+  calculateChangeVelocity $FIRST_CHANGE $NUM_CHANGES
+}
+
+
+# TFC Version
+# input: WORKSPACE_NAME
+function countTFC(){
+
+  response=$(curl --silent --location --globoff \
+    --header "Authorization: Bearer $TF_TOKEN_api_terraform_io" \
+    --header "Content-Type: application/vnd.api+json" \
+    "https://app.terraform.io/api/v2/state-versions?filter[workspace][name]=$1&filter[organization][name]=$TFC_ORGANIZATION")
+
+  FIRST_CHANGE=$(echo $response | jq -r '.data | sort_by (.attributes["created-at"])[0] | .attributes["created-at"]')
+  NUM_CHANGES=$(echo $response | jq -r '.meta.pagination["total-count"]')
+  
+  info "Number of changes since $FIRST_CHANGE: $NUM_CHANGES"
+
+  calculateChangeVelocity
+}
+
+# Calculate Change Velocity
+# INPUTS: $FIRST_CHANGE, $NUM_CHANGES
+function calculateChangeVelocity(){
+  
+  ARCH=$(uname)
+  info "You're using $ARCH"
+
+  if [[ $ARCH == "Darwin" ]]; then
+    START=$(date -j -f "%Y-%m-%dT%T" $FIRST_CHANGE +%s 2> /dev/null)
+    END=$(date +%s)
+    DIFF=$(($END-$START)) 
+    DIFF_MONTHS=$(printf %.1f "$(($DIFF / 60/60/24/(365/12)))")
+    info "$NUM_CHANGES changes over $(( $DIFF / 60/60/24 )) days or $DIFF_MONTHS months"
+  else
+    warn "this script is currently adapted for MacOS"
+    info "manually calculate the change rate from $FIRST_CHANGE to \"Last state change\""
+    info "and the number of changes in between: $NUM_CHANGES"
+    info "CHANGE_RATE (per month) = NUM_CHANGES / Time diff in months"
+  fi
+}
+
+
+### VARIABLES
+BACKEND_FLAVOR=${BACKEND_FLAVOR:-tfc}       # Which backend type to count (tfc or s3)
+BACKEND_PREFIX=$1                           # The backend prefix to query.
+
 info "Counting State Changes..."
 
-if [[ -z $1 ]]; then
-  warn "need bucket name"
+if [[ -z $BACKEND_PREFIX ]]; then
+  warn "Need bucket prefix or name"
   exit 1
-else
-  BUCKET_NAME=$1
 fi
 
-info "Looking at changes for \"$BUCKET_NAME\""
+## TODO: List all bucket and count each bucket matching PREFIX
+BACKEND_NAME=$BACKEND_PREFIX
 
-VERSION_STATUS=$(aws s3api get-bucket-versioning --bucket $BUCKET_NAME | jq -r '.Status')
+case $BACKEND_FLAVOR in 
+"tfc")
+  if [[ -z $TF_TOKEN_api_terraform_io ]]; then
+    warn "Need to set your TFC/TFE credential using: TF_TOKEN_api_terraform_io"
+    exit 1
+  fi
+  if [[ -z $TFC_ORGANIZATION ]]; then
+    warn "Need to set your TFC/TFE Organization ID using: `TFC_ORGANIZATION`"
+    exit 1
+  fi  
+  countTFC $BACKEND_NAME
+  ;;
+"s3")
+  countS3Bucket $BACKEND_NAME
+  ;;
+*)
+  error "Invalid BACKEND_FLAVOR: $BACKEND_FLAVOR. Valid values: tfc, or s3" ;;
+esac
 
-info "Versioning is: $VERSION_STATUS"
 
-if [[ $VERSION_STATUS != "Enabled" ]]; then
-  warn "Skipping Bucket: \"$BUCKET_NAME\" does not have versioning enabled, this bucket cannot be counted."
-fi
 
-JQ_OUT=($(aws s3api list-object-versions --bucket env0-acme-tfstate --no-paginate | jq -r '.Versions | length, sort_by(.LastModified)[0].LastModified'))
 
-NUM_CHANGES=${JQ_OUT[0]}
-FIRST_CHANGE=${JQ_OUT[1]}
 
-info "Number of changes since $FIRST_CHANGE: $NUM_CHANGES"
-
-ARCH=$(uname)
-info "You're using $ARCH"
-
-if [[ $ARCH == "Darwin" ]]; then
-  START=$(date -j -f "%Y-%m-%dT%T" $FIRST_CHANGE +%s)
-  END=$(date +%s)
-  DIFF=$(($END-$START)) 
-  DIFF_MONTHS=$(printf %.1f "$(($DIFF / 60/60/24/(365/12)))")
-  info "$NUM_CHANGES changes over $DIFF seconds or $(( $DIFF / 60/60/24 )) days or $DIFF_MONTHS months"
-else
-  warn "this script is currently adapted for MacOS"
-  info "manually calculate the change rate from $FIRST_CHANGE to \"Last state change\""
-  info "and the number of changes in between: $NUM_CHANGES"
-  info "CHANGE_RATE (per month) = NUM_CHANGES / Time diff in months"
-fi
