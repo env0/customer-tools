@@ -1,15 +1,17 @@
 #!/bin/bash
 
 #--------------------------------------------------------------------------------------------------------------------------
-# Usage: ./count-changes.sh <s3bucketname>
+# Usage: ./count-changes.sh <s3bucketname | tfc_workspace_name>
 #
 # count-changes.sh counts the amount of version change in an s3 bucket
 # 
 # Pre-Requisites: 
+# if using s3 bucket
 # - aws v2 CLI access - if s3 buckets, ensure you're already authenticated to your cloud
 # - s3:ListBucketVersions
-# - TF_TOKEN_api_terraform_io - if tfc workspaces, set this env var prior to running the script
-# - TFC_ORGANIZATION
+# if using TFC
+# - TF_TOKEN_api_terraform_io - set this env var prior to running the script
+# - TFC_ORGANIZATION - set this to your TFC organization name
 # - macos (date function specific for macos)
 #--------------------------------------------------------------------------------------------------------------------------
 
