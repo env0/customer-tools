@@ -141,7 +141,6 @@ function calculateChangeVelocity(){
     END=$(date +%s)
     DIFF=$(($END-$START)) 
     DIFF_MONTHS=$(printf %.1f "$(($DIFF / 60/60/24/(365/12)))")
-    debug "$1 has $NUM_CHANGES since $FIRST_CHANGE"
     debug "$1 has $NUM_CHANGES changes over $(( $DIFF / 60/60/24 )) days or $DIFF_MONTHS months"
     AVG_NUM_CHANGES=$(( $NUM_CHANGES / $DIFF/60/60/24/365*12 ))
     info "$1 has on average $AVG_NUM_CHANGES changes over in a month"
