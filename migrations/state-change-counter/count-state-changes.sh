@@ -45,6 +45,7 @@ function log() {
   case $LEVEL in
   "INFO") HEADER_COLOR=$GREEN MSG_COLOR=$NC ;;
   "WARN") HEADER_COLOR=$BROWN MSG_COLOR=$NC ;;
+  "DEBUG") HEADER_COLOR=$CYAN MSG_COLOR=$NC ;;
   "ERROR") HEADER_COLOR=$RED MSG_COLOR=$NC ;;
   esac
   printf "${HEADER_COLOR}[%-5.5s]${NC} ${MSG_COLOR}%b${NC}" "${LEVEL}" "${MSG}\n"
@@ -53,6 +54,12 @@ function log() {
 
 function info() {
   log "INFO" "$1"
+}
+
+function debug() {
+  if [[ -n $DEBUG ]]; then 
+    log "DEBUG" "$1"
+  fi
 }
 
 function warn() {
@@ -90,11 +97,27 @@ function countS3Bucket() {
   calculateChangeVelocity $FIRST_CHANGE $NUM_CHANGES
 }
 
-
 # TFC Version
+# input: $WORKSPACE_PREFIX
+function findTFCWorkspaces(){
+  info "Finding Workspaces beginning with $1"
+  #get all TFC Workspaces
+  response=$(curl --silent --location \
+  --header "Authorization: Bearer $TF_TOKEN_api_terraform_io" \
+  --header "Content-Type: application/vnd.api+json" \
+  https://app.terraform.io/api/v2/organizations/$TFC_ORGANIZATION/workspaces)
+
+  #match TFC Workspace to $WORKSPACE_PREFIX (skip for now)
+  WORKSPACES=($(echo $response | jq -r ".data[] | select (.attributes.name | startswith(\"$1\")) | .attributes.name"))
+
+  debug "Found ${#WORKSPACES[@]} Workspaces"
+  #return array of matching workspaces
+}  
+
+
 # input: WORKSPACE_NAME
 function countTFC(){
-
+  debug "Querying details for $1"
   response=$(curl --silent --location --globoff \
     --header "Authorization: Bearer $TF_TOKEN_api_terraform_io" \
     --header "Content-Type: application/vnd.api+json" \
@@ -103,29 +126,28 @@ function countTFC(){
   FIRST_CHANGE=$(echo $response | jq -r '.data | sort_by (.attributes["created-at"])[0] | .attributes["created-at"]')
   NUM_CHANGES=$(echo $response | jq -r '.meta.pagination["total-count"]')
   
-  info "Number of changes since $FIRST_CHANGE: $NUM_CHANGES"
+  debug "Number of changes since $FIRST_CHANGE: $NUM_CHANGES"
 
-  calculateChangeVelocity
+  calculateChangeVelocity $1
 }
 
 # Calculate Change Velocity
 # INPUTS: $FIRST_CHANGE, $NUM_CHANGES
 function calculateChangeVelocity(){
-  
-  ARCH=$(uname)
-  info "You're using $ARCH"
-
   if [[ $ARCH == "Darwin" ]]; then
     START=$(date -j -f "%Y-%m-%dT%T" $FIRST_CHANGE +%s 2> /dev/null)
     END=$(date +%s)
     DIFF=$(($END-$START)) 
     DIFF_MONTHS=$(printf %.1f "$(($DIFF / 60/60/24/(365/12)))")
-    info "$NUM_CHANGES changes over $(( $DIFF / 60/60/24 )) days or $DIFF_MONTHS months"
+    debug "$1 has $NUM_CHANGES since $FIRST_CHANGE"
+    debug "$1 has $NUM_CHANGES changes over $(( $DIFF / 60/60/24 )) days or $DIFF_MONTHS months"
+    AVG_NUM_CHANGES=$(( $NUM_CHANGES / $DIFF/60/60/24/365*12 ))
+    info "$1 has on average $AVG_NUM_CHANGES changes over in a month"
   else
-    warn "this script is currently adapted for MacOS"
-    info "manually calculate the change rate from $FIRST_CHANGE to \"Last state change\""
-    info "and the number of changes in between: $NUM_CHANGES"
-    info "CHANGE_RATE (per month) = NUM_CHANGES / Time diff in months"
+    #info "manually calculate the change rate from $FIRST_CHANGE to \"Last state change\""
+    #info "and the number of changes in between: $NUM_CHANGES"
+    #info "CHANGE_RATE (per month) = NUM_CHANGES / Time diff in months"
+    info "$1 has $NUM_CHANGES since $FIRST_CHANGE"
   fi
 }
 
@@ -138,8 +160,11 @@ if [[ -z $WORKSPACE_PREFIX ]]; then
   exit 1
 fi
 
-## TODO: List all bucket and count each bucket matching PREFIX
-WORKSPACE=$WORKSPACE_PREFIX
+ARCH=$(uname)
+debug "You're using $ARCH"
+if [[ $ARCH != "Darwin" ]]; then
+  warn "this script is currently adapted for MacOS"
+fi
 
 case $BACKEND_FLAVOR in 
 "tfc")
@@ -151,9 +176,14 @@ case $BACKEND_FLAVOR in
     warn "Need to set your TFC/TFE Organization ID using: `TFC_ORGANIZATION`"
     exit 1
   fi  
-  countTFC $WORKSPACE
+  findTFCWorkspaces $WORKSPACE_PREFIX
+  for WORKSPACE in ${WORKSPACES[@]}; do
+    countTFC ${WORKSPACE}
+  done
   ;;
 "s3")
+## TODO: List all bucket and count each bucket matching PREFIX
+  WORKSPACE=$WORKSPACE_PREFIX
   countS3Bucket $WORKSPACE
   ;;
 *)
