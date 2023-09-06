@@ -77,16 +77,24 @@ function error() {
 
 ### HELPER FUNCTIONS
 
+function findS3BucketsWithPrefix(){
+  info "Finding s3 Buckets beginning with $1"  
+  WORKSPACES=($(aws s3 ls | awk -v prefix=$1 '$3 ~ "^" prefix {print $3}'))
+  debug "Found ${#WORKSPACES[@]} Buckets"
+}
+
 function countS3Bucket() {
   info "Looking at changes for \"$1\""
 
-  # S3 Version
-  VERSION_STATUS=$(aws s3api get-bucket-versioning --bucket $1 | jq -r '.Status')
+  # S3 Region
+  REGION=$(aws s3api get-bucket-location --bucket $1 | jq -r '.LocationConstraint')
 
-  info "Versioning is: $VERSION_STATUS"
+  # S3 Version
+  VERSION_STATUS=$(aws s3api get-bucket-versioning --bucket $1 --region $REGION | jq -r '.Status')
 
   if [[ $VERSION_STATUS != "Enabled" ]]; then
-    warn "Skipping Bucket: \"$1\" does not have versioning enabled, this bucket cannot be counted."
+    info "\- Skipping Bucket: \"$1\" does not have versioning enabled, this bucket cannot be counted."
+    return
   fi
 
   JQ_OUT=($(aws s3api list-object-versions --bucket $1 --no-paginate | jq -r '.Versions | length, sort_by(.LastModified)[0].LastModified'))
@@ -101,7 +109,7 @@ function countS3Bucket() {
 
 # TFC Version
 # input: $WORKSPACE_PREFIX
-function findTFCWorkspaces(){
+function findTFCWorkspacesWithPrefix(){
   info "Finding Workspaces beginning with $1"
   #get all TFC Workspaces
   response=$(curl --silent --location \
@@ -135,14 +143,15 @@ function countTFC(){
 
 # Calculate Change Velocity
 # INPUTS: $FIRST_CHANGE, $NUM_CHANGES
+# BASH DOESN'T HANDLE FLOATING POINT
 function calculateChangeVelocity(){
   if [[ $ARCH == "Darwin" ]]; then
     START=$(date -j -f "%Y-%m-%dT%T" $FIRST_CHANGE +%s 2> /dev/null)
     END=$(date +%s)
     DIFF=$(($END-$START)) 
-    DIFF_MONTHS=$(printf %.1f "$(($DIFF / 60/60/24/(365/12)))")
+    DIFF_MONTHS=$(( $DIFF/60/60/24/(365/12) ))
     debug "$1 has $NUM_CHANGES changes over $(( $DIFF / 60/60/24 )) days or $DIFF_MONTHS months"
-    AVG_NUM_CHANGES=$(( $NUM_CHANGES / $DIFF/60/60/24/365*12 ))
+    AVG_NUM_CHANGES=$(( $NUM_CHANGES/$DIFF_MONTHS ))
     info "$1 has on average $AVG_NUM_CHANGES changes over in a month"
   else
     #info "manually calculate the change rate from $FIRST_CHANGE to \"Last state change\""
@@ -177,15 +186,16 @@ case $BACKEND_FLAVOR in
     warn "Need to set your TFC/TFE Organization ID using: `TFC_ORGANIZATION`"
     exit 1
   fi  
-  findTFCWorkspaces $WORKSPACE_PREFIX
+  findTFCWorkspacesWithPrefix $WORKSPACE_PREFIX
   for WORKSPACE in ${WORKSPACES[@]}; do
     countTFC ${WORKSPACE}
   done
   ;;
 "s3")
-## TODO: List all bucket and count each bucket matching PREFIX
-  WORKSPACE=$WORKSPACE_PREFIX
-  countS3Bucket $WORKSPACE
+  findS3BucketsWithPrefix $WORKSPACE_PREFIX
+  for WORKSPACE in ${WORKSPACES[@]}; do
+    countS3Bucket $WORKSPACE
+   done
   ;;
 *)
   error "Invalid BACKEND_FLAVOR: $BACKEND_FLAVOR. Valid values: tfc, or s3" ;;
