@@ -2,14 +2,14 @@
 
 # Migration of Run
 
-tfcWorkspaceID="ws-jvFGoTDu3urUjUht"
-tfcBearerToken="97Pd9JGgfB3KiQ.atlasv1.SpY8TXtfRj5z35kqN3OJuAnM9FpXRuAmA5ZkDaNXWDAKmyGRKtQiyMQQWx1twytyLFo"
+tfcWorkspaceID=""
+tfcBearerToken=""
 
-env0OrgID="a25b6a59-9c48-4917-b082-68e985319a87"
-env0ProjectID="63152313-6e36-4913-bd20-5f3bfb3ce6e2"
-env0BearerToken="NWdwaXJpeHFkX3B2dDdrYTpYc2pGVXZ0alRYZXJTcWhqcEdObUJ0QlduMGpFT21zVg=="
-githubInstallationID="27876397"
+env0OrgID=""
+env0ProjectID=""
+env0BearerToken=""
+githubInstallationID=""
 
 # Migration of State
 
-env0envID="05ba2131-8593-40c7-8802-bf7df2d42d9b"
+env0envID=""
