@@ -1,5 +1,8 @@
 # TFC to env0 Migration - TFC Local State
 
+The manual workflow can be found in the env0 documentation.
+https://docs.env0.com/docs/state-migration
+
 ## Prerequisite
 
 The following applications should be installed on your local machine:
@@ -8,25 +11,25 @@ The following applications should be installed on your local machine:
 - sed
 - curl
 
-Set TFC "Apply Method" to "Manual Apply".
+Find the workspace you are looking to migrate and set TFC "Execution Mode" to "Custom" & "Local".
 
-Backend should be defined as Remote and not Cloud.
+The backend should be defined as Remote and not Cloud.
 
-Login to TFC: "terraform login"
+```
+backend "remote" {  
+  organization = "example_corp"
+  workspaces {
+    name = "my-prod-resource"
+	}
+}
+```
 
-Login to env0: "terraform login backend.api.env0.com"
+## Procedure - Migrate run while leaving state in TFC
 
-Remove the terraform directory and terraform.lock file from your local directory.
-
-## Procedure
-
-Copy or clone the "inputs.txt" and "tfc2env0.sh" files to directory which requires migrating.
+Copy or clone the files to a location where you are able to execute the scripts.
 
 Fill in the "inputs.txt" file with relevant data.
 
-Run the "tfc2env0.sh" script.
+Run the "tfc2env0-migrateRun.sh" script to migrate the run logic to env0, leaving the state in TFC.
 
-Update the env0 template with correct VCS and variable configuration as prompted by the script.
-
-Trigger a redploy of the newly created environment as prompted by the script.
-Be aware auto-approval is turned on for this migrated environment.  We recommend disabling this on first redeploy.
+Once you are happy with the env0 platform, migrate the state by executing the "tfc2env0-migrateState.sh" script.
