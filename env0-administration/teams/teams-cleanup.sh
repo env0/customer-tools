@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define the authorization credentials for the API calls
-AUTHORIZATION=""
-organization=""
+ENV0_TOKEN=""  #base64 encoded token copied from env0 UI when creating a new API key.
+organization="" #organization id e.g. bde19c6d-d0dc-4b11-a951-8f43fe49db92
 
 # Define the API call to retrieve all teams
 GET_TEAMS_URL="https://api.env0.com/teams/organizations/$organization"
@@ -11,7 +11,7 @@ GET_TEAMS_URL="https://api.env0.com/teams/organizations/$organization"
 curl --request GET \
     --url "$GET_TEAMS_URL" \
     --header 'accept: application/json' \
-    --header "authorization: Basic $AUTHORIZATION" \
+    --header "authorization: Basic $ENV0_TOKEN" \
     --header 'content-type: application/json' \
     > teams.json
 
@@ -24,7 +24,7 @@ for team_id in $team_ids; do
     curl --request DELETE \
         --url "https://api.env0.com/teams/$team_id" \
         --header 'accept: application/json' \
-        --header "authorization: Basic $AUTHORIZATION" \
+        --header "authorization: Basic $ENV0_TOKEN" \
         --header 'content-type: application/json'
 done
 
