@@ -18,6 +18,7 @@ class HttpClient:
                 url=url,
                 headers=headers,
                 json=params,
+                verify=False,
             )
             response.raise_for_status()
         except Exception as e:

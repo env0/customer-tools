@@ -24,8 +24,49 @@ class Env0APIClient(
             'accept': 'application/json',
             'content-type': 'application/json'
         }
+        
+    def create_new_provider(
+        self,
+        provider_type,
+        org_id,
+    ):
+        response = self.send_request(
+            method=self.session.post,
+            url=f'{self.base_url}/providers',
+            params={
+                'type': provider_type,
+                'organizationId': org_id,
+            },
+            headers=self.headers,
+        )
+        
+        return response
+    
+    def create_module(
+        self,
+        module_name,
+        module_provider,
+        repository,
+        org_id,
+        module_type='module',
+    ):
+        response = self.send_request(
+            method=self.session.post,
+            url=f'{self.base_url}/modules',
+            params={
+                'type': module_type,
+                'moduleName': module_name,
+                'moduleProvider': module_provider,
+                'repository': repository,
+                'organizationId': org_id,
+                
+            },
+            headers=self.headers,
+        )
+        
+        return response
 
-    def archieve_environment(
+    def archive_environment(
         self,
         environment_id,
     ):
