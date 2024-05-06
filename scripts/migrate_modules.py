@@ -65,8 +65,7 @@ if __name__ == '__main__':
         api_token=TFC_TOKEN,
         org_name=TFC_ORG_NAME,
     )
-    
-    env0_client = clients.env0_registry.Env0RegistryClient(
+    env0_client = clients.env0.Env0APIClient(
         api_key=ENV0_API_KEY,
         api_secret=ENV0_API_SECRET,
     )
