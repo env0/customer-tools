@@ -8,3 +8,6 @@ It reads the configuration and sets up the variables in the same exact manner.
 And creates a new environment with the same exact configuration.
 
 Note: FYI, this script cannot migrate your deployment history; it will be archived with the original environment.
+
+## Migrate Modules
+Allows a user to migrate modules from TFC over to env0 Module Registry
