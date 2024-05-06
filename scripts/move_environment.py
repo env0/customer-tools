@@ -21,7 +21,6 @@ import clients
 
 ENV0_API_KEY = ''
 ENV0_API_SECRET = ''
-ENV0_ORGANIZATION_ID = ''
 
 ENV0_ENVIRONMENT_IDS_TO_MOVE = []
 ENV0_PROJECT_ID_TO_MOVE_TO = ''
@@ -37,9 +36,15 @@ if __name__ == '__main__':
         environment_data = env0_client.get_environment(
             environment_id=environment_id,
         ) 
-        archieve_environment = env0_client.archieve_environment(
+        env0_client.archive_environment(
             environment_id=environment_id,
-        )            
+        )
+        template_is_used = not environment_data.get('isSingleUseBlueprint')
+        if template_is_used:
+            pass
+            # TODO 
+            # assign template to the new project
+            # create new environment with the assigned template
         new_environment_in_new_project = env0_client.create_environment(
             environment_name=environment_data.get('name'),
             workspace_name=environment_data.get('workspaceName'),
