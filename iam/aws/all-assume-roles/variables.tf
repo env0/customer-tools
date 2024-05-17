@@ -22,3 +22,15 @@ variable "managed_policy_arns" {
   default     = ["arn:aws:iam::aws:policy/AdministratorAccess", ]
   description = "list of policy arns to assign to env0's deployer"
 }
+
+variable "isRunningInEnv0" {
+  type        = bool
+  default     = false
+  description = "is this code being executed within env0?"
+}
+
+variable "org_id" {
+  type        = string
+  default     = ""
+  description = "supply this value if you're not running in env0"
+}

@@ -37,7 +37,7 @@ resource "aws_iam_role" "env0_cost_role" {
   })
 
   tags = {
-    note = "Created through env0 Bootstrap"
+    note    = "Created through env0 Bootstrap"
     purpose = "Allow env0 Cost Management features"
   }
 }
@@ -51,11 +51,11 @@ resource "aws_iam_role_policy" "test_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-        {
-          Resource = "*"
-          Action   = "ce:GetCostAndUsage"
-          Effect   = "Allow"
-        },
+      {
+        Resource = "*"
+        Action   = "ce:GetCostAndUsage"
+        Effect   = "Allow"
+      },
     ]
   })
 }
@@ -65,7 +65,7 @@ resource "env0_aws_cost_credentials" "aws_cost_credentials" {
   arn      = aws_iam_role.env0_cost_role.arn
   duration = 3600
 }
-  
+
 output "cost_role_arn" {
   value = aws_iam_role.env0_cost_role.arn
 }

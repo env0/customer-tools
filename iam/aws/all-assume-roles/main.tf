@@ -39,14 +39,14 @@ resource "aws_iam_role" "env0_deployer_role" {
 }
 
 resource "env0_aws_credentials" "credentials" {
-  name        = aws_iam_role.env0_deployer_role.arn #easier to track in the UI which role exactly is being used
-  arn         = aws_iam_role.env0_deployer_role.arn
+  name = aws_iam_role.env0_deployer_role.arn #easier to track in the UI which role exactly is being used
+  arn  = aws_iam_role.env0_deployer_role.arn
 }
 
 ### 
 
 output "deployer_arn" {
-  value = aws_iam_role.env0_deployer_role.arn
+  value       = aws_iam_role.env0_deployer_role.arn
   description = "deployer role"
 }
 

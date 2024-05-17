@@ -28,7 +28,6 @@ provider "aws" {
 
 
 locals {
-  json_data = jsondecode(file("env0.system-env-vars.json"))
-
-  org_id = local.json_data.ENV0_ORGANIZATION_ID
+  json_data = var.isRunningInEnv0 ? jsondecode(file("env0.system-env-vars.json")) : jsondecode("{}")
+  org_id    = (var.isRunningInEnv0 && var.org_id != "") ? local.json_data.ENV0_ORGANIZATION_ID : var.org_id
 }
