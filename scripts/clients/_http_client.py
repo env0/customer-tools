@@ -1,6 +1,3 @@
-import requests
-
-
 class HttpClient:
     def send_request(
         self,
@@ -9,16 +6,21 @@ class HttpClient:
         headers,
         params=None,
         json_response=False,
+        use_json=True
     ):
         if not params:
             params={}
+            
+        kwargs = {
+            'url': url,
+            'headers': headers,
+            'verify': False,
+            'json' if use_json else 'params': params
+        }
 
         try:
             response = method(
-                url=url,
-                headers=headers,
-                json=params,
-                verify=False,
+                **kwargs,
             )
             response.raise_for_status()
         except Exception as e:

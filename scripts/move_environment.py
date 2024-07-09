@@ -4,7 +4,7 @@ It automates the process of archiving specified environments and recreating them
 
 Prerequisites:
 - Python 3
-- An API key and secret for env0
+- An API key, secret and Organization ID for env0
 - The `ENV0_ENVIRONMENT_IDS_TO_MOVE` list populated with the IDs of the environments you wish to migrate.
 - The `ENV0_PROJECT_ID_TO_MOVE_TO` variable set to the ID of the project you are moving the environments to.
 
@@ -21,10 +21,10 @@ import clients
 
 ENV0_API_KEY = ''
 ENV0_API_SECRET = ''
+ENV0_ORGANIZATION_ID = ''
 
 ENV0_ENVIRONMENT_IDS_TO_MOVE = []
 ENV0_PROJECT_ID_TO_MOVE_TO = ''
-
 
 if __name__ == '__main__':
     env0_client = clients.env0.Env0APIClient(
@@ -45,14 +45,17 @@ if __name__ == '__main__':
             # TODO 
             # assign template to the new project
             # create new environment with the assigned template
+        environment_variables = env0_client.list_variables_by_scope(
+            organization_id=ENV0_ORGANIZATION_ID,
+            environment_id=environment_data['id']
+        )
         new_environment_in_new_project = env0_client.create_environment(
             environment_name=environment_data.get('name'),
             workspace_name=environment_data.get('workspaceName'),
-            custom_env0_environment_variables_commit_hash=environment_data.get('customEnv0EnvironmentVariables', {}).get('commitHash'),
-            custom_env0_environment_variables_commit_url=environment_data.get('customEnv0EnvironmentVariables', {}).get('commitUrl'),
             blueprint_id=environment_data.get('latestDeploymentLog', {}).get('blueprintId'),
             blueprint_revision=environment_data.get('latestDeploymentLog', {}).get('blueprintRevision'),
             blueprint_repository=environment_data.get('latestDeploymentLog', {}).get('blueprintRepository'),
+            configuration_changes=environment_variables,
             continuous_deployment=environment_data.get('continuousDeployment'),
             pull_request_plan_deployments=environment_data.get('pullRequestPlanDeployments'),
             vcs_commands_alias=environment_data.get('vcsCommandsAlias'),

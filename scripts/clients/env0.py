@@ -25,6 +25,23 @@ class Env0APIClient(
             'content-type': 'application/json'
         }
         
+    @staticmethod
+    def build_params_without_none(
+        **kwargs,
+    ):
+        param_mapping = {
+            'organization_id': 'organizationId',
+            'project_id': 'projectId',
+            'blueprint_id': 'blueprintId',
+            'environment_id': 'environmentId',
+            'deployment_log_id': 'deploymentLogId'
+        }
+        
+        return {
+            param_mapping[k]: v for k, v in kwargs.items() if v is not None
+        }
+
+        
     def create_new_provider(
         self,
         provider_type,
@@ -93,6 +110,32 @@ class Env0APIClient(
         )
         
         return response
+    
+    def list_variables_by_scope(
+        self,
+        organization_id,
+        project_id=None,
+        blueprint_id=None,
+        environment_id=None,
+    ):
+        params = self.build_params_without_none(
+            organization_id=organization_id,
+            project_id=project_id,
+            blueprint_id=blueprint_id,
+            environment_id=environment_id
+        )
+        
+        response = self.send_request(
+            method=self.session.get,
+            url=f'{self.base_url}/configuration',
+            headers=self.headers,
+            params=params,
+            use_json=False,
+            json_response=True,
+            
+        )
+        
+        return response
 
     def create_environment(
         self,
@@ -102,8 +145,7 @@ class Env0APIClient(
         blueprint_id,
         blueprint_revision,
         blueprint_repository,
-        custom_env0_environment_variables_commit_hash,
-        custom_env0_environment_variables_commit_url,
+        configuration_changes,
         continuous_deployment,
         pull_request_plan_deployments,
         vcs_commands_alias,
@@ -123,14 +165,7 @@ class Env0APIClient(
                 'ttl': {
                     'type': 'INFINITE',
                 },
-                'customEnv0EnvironmentVariables': {
-                    'commitHash': custom_env0_environment_variables_commit_hash,
-                    'commitUrl': custom_env0_environment_variables_commit_url,
-                },
-                'configurationChanges': {
-                    'name': 'a',
-                    'type': 0,
-                },
+                'configurationChanges': configuration_changes,
                 'deployRequest': {
                     'configurationChanges': {
                         'type': 0,
