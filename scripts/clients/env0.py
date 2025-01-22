@@ -34,7 +34,9 @@ class Env0APIClient(
             'project_id': 'projectId',
             'blueprint_id': 'blueprintId',
             'environment_id': 'environmentId',
-            'deployment_log_id': 'deploymentLogId'
+            'deployment_log_id': 'deploymentLogId',
+            'is_active': 'isActive',
+            'offset': 'offset'
         }
         
         return {
@@ -183,3 +185,37 @@ class Env0APIClient(
         )
         
         return response
+
+    def list_environments(
+        self,
+        organization_id,
+        project_id=None,
+        is_active=True,
+    ):
+        all_results = []
+        offset, limit = 0, 100
+
+        while True:
+            params = self.build_params_without_none(
+                organization_id=organization_id,
+                project_id=project_id,
+                is_active=str(is_active).lower(),
+                offset=str(offset)
+            )
+            
+            response = self.send_request(
+                method=self.session.get,
+                url=f'{self.base_url}/environments',
+                headers=self.headers,
+                use_json=False,
+                json_response=True,
+                params=params,
+            )
+            all_results.extend(response)
+            
+            if len(response) < limit:
+                break
+            
+            offset += limit
+        
+        return all_results
