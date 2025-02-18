@@ -219,3 +219,43 @@ class Env0APIClient(
             offset += limit
         
         return all_results
+    
+    def list_teams(
+        self,
+        organization_id,
+    ):
+        all_teams = []
+        offset, limit = 0, 100
+        
+        while True:
+            response = self.send_request(
+                method=self.session.get,
+                url=f'{self.base_url}/teams/organizations/{organization_id}',
+                headers=self.headers,
+                use_json=False,
+                json_response=True,
+            )
+            
+            all_teams.extend(response)
+            
+            if len(response) < limit:
+                break
+            
+            offset += limit
+        
+        return all_teams
+    
+    def delete_team(
+        self,
+        team_id,
+    ):
+        response = self.send_request(
+            method=self.session.delete,
+            url=f'{self.base_url}/teams/{team_id}',
+            headers=self.headers,
+            use_json=False,
+            json_response=True,
+        )
+        
+        return response
+        
