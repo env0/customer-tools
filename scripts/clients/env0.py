@@ -42,8 +42,7 @@ class Env0APIClient(
         return {
             param_mapping[k]: v for k, v in kwargs.items() if v is not None
         }
-
-        
+     
     def create_new_provider(
         self,
         provider_type,
@@ -186,6 +185,22 @@ class Env0APIClient(
         
         return response
 
+    def deploy_environment(
+        self,
+        environment_id,
+        params,
+    ):
+        response = self.send_request(
+            method=self.session.post,
+            url=f'{self.base_url}/environments/{environment_id}/deployments',
+            headers=self.headers,
+            use_json=True,
+            json_response=True,
+            params=params,
+        )
+        
+        return response
+        
     def list_environments(
         self,
         organization_id,
